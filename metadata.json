@@ -1,9 +1,8 @@
+
 {
   "requestFramePermissions": [
-    "camera",
-    "microphone",
-    "geolocation"
+    "microphone"
   ],
   "name": "DriveAssist",
-  "description": ""
+  "description": "Slimme co-piloot voor chauffeurs met cloud-sync agenda."
 }
