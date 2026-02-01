@@ -184,7 +184,7 @@ const App: React.FC = () => {
             <h2 className="text-3xl font-black mb-4 tracking-tighter">Agenda Koppelen</h2>
             <div className="space-y-4 text-slate-400 text-sm mb-8 leading-relaxed font-medium">
               <p>1. Open je Google Sheet takenlijst.</p>
-              <p>2. <b>Bestand > Delen > Publiceren op internet</b>.</p>
+              <p>2. <b>Bestand &gt; Delen &gt; Publiceren op internet</b>.</p>
               <p>3. Selecteer <b>CSV (.csv)</b> en klik <b>Publiceren</b>.</p>
               <p>4. Plak de link hieronder.</p>
             </div>
