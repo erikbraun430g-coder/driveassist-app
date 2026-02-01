@@ -1,21 +1,11 @@
 
 export interface Task {
   id: string;
-  omschrijving: string;
-  telefoonnummer?: string;
-  notitie: string;
+  name: string;
+  organization: string;
+  subject: string;
+  phoneNumber: string;
   status: 'open' | 'bezig' | 'voltooid';
-}
-
-export interface GroundingSource {
-  title?: string;
-  uri?: string;
-}
-
-export interface ChatMessage {
-  role: 'user' | 'model';
-  text: string;
-  timestamp: Date;
 }
 
 export interface AppState {
@@ -26,4 +16,11 @@ export interface AppState {
   location: { lat: number; lng: number } | null;
   tasks: Task[];
   activeTaskId: string | null;
+}
+
+// Added missing ChatMessage interface
+export interface ChatMessage {
+  role: 'user' | 'model';
+  text: string;
+  timestamp: Date;
 }
