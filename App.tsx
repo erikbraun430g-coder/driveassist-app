@@ -85,10 +85,10 @@ const App: React.FC = () => {
   const startCoPilot = async () => {
     setAppState(prev => ({ ...prev, status: 'connecting', aiText: 'Systeem laden...' }));
     
-    // Bouw de rittenlijst context voor de AI
-    const rittenLijstContext = tasksRef.current.length > 0 
-      ? tasksRef.current.map(t => `- ${t.omschrijving} (Tel: ${t.telefoonnummer || 'Onbekend'})`).join('\n')
-      : "Er zijn momenteel geen ritten geladen.";
+    // Injecteer de werkelijke rittenlijst in de instructies
+    const currentRitten = tasksRef.current.length > 0 
+      ? tasksRef.current.map(t => `- Bestemming: ${t.omschrijving} | Tel: ${t.telefoonnummer || 'Niet beschikbaar'}`).join('\n')
+      : "Er zijn momenteel GEEN ritten geladen in het systeem.";
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -101,7 +101,7 @@ const App: React.FC = () => {
         model: 'gemini-2.5-flash-native-audio-preview-12-2025',
         callbacks: {
           onopen: () => {
-            setAppState(prev => ({ ...prev, status: 'active', isActive: true, aiText: 'Ik ben er voor je.' }));
+            setAppState(prev => ({ ...prev, status: 'active', isActive: true, aiText: 'Ik luister.' }));
             const source = inputCtx.createMediaStreamSource(stream);
             const scriptProcessor = inputCtx.createScriptProcessor(4096, 1, 1);
             scriptProcessor.onaudioprocess = (e) => {
@@ -116,8 +116,8 @@ const App: React.FC = () => {
               for (const fc of message.toolCall.functionCalls) {
                 if (fc.name === 'dial_number') {
                   const num = fc.args.number as string;
-                  const task = tasksRef.current.find(t => t.telefoonnummer === num || t.id === fc.args.taskId);
-                  setCallingTask(task || { id: 'temp', omschrijving: 'Nummer bellen...', telefoonnummer: num, notitie: '', status: 'bezig' });
+                  const task = tasksRef.current.find(t => t.telefoonnummer === num);
+                  setCallingTask(task || { id: 'ext', omschrijving: 'Extern nummer', telefoonnummer: num, notitie: '', status: 'bezig' });
                   setTimeout(() => { window.location.assign(`tel:${num}`); setCallingTask(null); }, 3000);
                 }
                 sessionPromise.then(s => s.sendToolResponse({ functionResponses: { id: fc.id, name: fc.name, response: { result: "ok" } } }));
@@ -147,25 +147,32 @@ const App: React.FC = () => {
           inputAudioTranscription: {},
           outputAudioTranscription: {},
           systemInstruction: `Je bent DriveAssist, de co-piloot voor deze chauffeur. 
-          BELANGRIJK: Gebruik ALLEEN de onderstaande rittenlijst. Verzin NOOIT eigen ritten.
           
-          HUIDIGE RITTENLIJST:
-          ${rittenLijstContext}
+          STRIKTE REGELS:
+          1. Gebruik UITSLUITEND de onderstaande rittenlijst. 
+          2. Verzin NOOIT eigen ritten of adressen. 
+          3. Als de chauffeur vraagt naar de volgende rit, lees dan de eerste rit uit de lijst voor.
+          4. Antwoord kort en krachtig.
           
-          Antwoord altijd kort en zakelijk. Als de chauffeur vraagt om iemand te bellen, gebruik dan de dial_number tool.`
+          WERKELIJKE RITTENLIJST:
+          ${currentRitten}
+          
+          Als de chauffeur zegt "Bel [naam]", zoek dan het nummer in de lijst en gebruik dial_number.`
         }
       });
       sessionRef.current = await sessionPromise;
     } catch (err) {
-      setAppState(prev => ({ ...prev, status: 'error', aiText: 'Microfoon toegang nodig.' }));
+      setAppState(prev => ({ ...prev, status: 'error', aiText: 'Microfoon toegang geweigerd.' }));
     }
   };
 
   const stopCoPilot = () => {
     sessionRef.current?.close();
-    audioContextRef.current?.input.close();
-    audioContextRef.current?.output.close();
-    audioContextRef.current = null;
+    if (audioContextRef.current) {
+      audioContextRef.current.input.close();
+      audioContextRef.current.output.close();
+      audioContextRef.current = null;
+    }
     setAppState(prev => ({ ...prev, isActive: false, status: 'idle', userText: '', aiText: '' }));
     audioSourcesRef.current.forEach(s => { try { s.stop(); } catch(e) {} });
     audioSourcesRef.current.clear();
@@ -179,7 +186,9 @@ const App: React.FC = () => {
         <div className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-6 backdrop-blur-xl">
           <div className="w-full max-w-md bg-slate-900 p-8 rounded-[2.5rem] border border-white/10 shadow-2xl">
             <h2 className="text-xl font-black mb-4">Agenda Koppelen</h2>
-            <p className="text-slate-400 text-sm mb-6">Plak de CSV-link van je Google Sheet (Bestand > Delen > Publiceren op internet).</p>
+            <p className="text-slate-400 text-sm mb-6 leading-relaxed">
+              {'Plak de CSV-link van je Google Sheet (Bestand > Delen > Publiceren op internet).'}
+            </p>
             <input 
               type="text" value={sheetUrl} onChange={(e) => setSheetUrl(e.target.value)}
               className="w-full bg-black/50 border border-white/10 p-5 rounded-2xl mb-6 outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
@@ -194,25 +203,28 @@ const App: React.FC = () => {
       )}
 
       {callingTask && (
-        <div className="fixed inset-0 z-[60] bg-indigo-700 flex flex-col items-center justify-center p-10 text-center animate-in fade-in duration-300">
+        <div className="fixed inset-0 z-[60] bg-indigo-700 flex flex-col items-center justify-center p-10 text-center">
            <i className="fa-solid fa-phone-volume text-7xl mb-10 animate-pulse"></i>
            <h2 className="text-3xl font-black mb-2">{callingTask.omschrijving}</h2>
            <p className="text-xl opacity-50 tracking-widest">{callingTask.telefoonnummer}</p>
         </div>
       )}
 
-      {/* Header aangepast voor iPhone Safe Area */}
-      <header className="px-8 pt-14 pb-6 flex justify-between items-center bg-slate-950/80 backdrop-blur-lg border-b border-white/5">
+      {/* Verbeterde header voor iPhone Safe Area */}
+      <header className="px-8 pt-[env(safe-area-inset-top,3.5rem)] pb-6 flex justify-between items-center bg-slate-950/80 backdrop-blur-lg border-b border-white/5">
         <div className="flex items-center gap-4">
           <div className="w-11 h-11 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-600/20">
-            <i className="fa-solid fa-car-side text-white"></i>
+            <i className="fa-solid fa-car-side text-white text-lg"></i>
           </div>
           <div>
             <h1 className="text-[11px] font-black uppercase tracking-[0.3em]">DriveAssist <span className="text-indigo-400">3.1</span></h1>
-            <span className="text-[9px] text-white/30 font-bold uppercase tracking-widest">{sheetUrl ? 'Live Sync' : 'Standalone'}</span>
+            <span className="text-[9px] text-white/30 font-bold uppercase tracking-widest">{sheetUrl ? 'Cloud Connected' : 'Geen Sync'}</span>
           </div>
         </div>
-        <button onClick={() => setShowSyncModal(true)} className="w-11 h-11 rounded-2xl bg-white/5 flex items-center justify-center active:bg-white/10 transition-colors">
+        <button 
+          onClick={() => setShowSyncModal(true)} 
+          className="w-11 h-11 rounded-2xl bg-white/5 flex items-center justify-center active:scale-90 transition-transform"
+        >
           <i className={`fa-solid fa-cloud-arrow-down text-base ${isSyncing ? 'animate-bounce text-indigo-400' : 'text-white/40'}`}></i>
         </button>
       </header>
@@ -221,7 +233,7 @@ const App: React.FC = () => {
         <div className="flex-1 flex flex-col items-center justify-center text-center space-y-12">
           <div className="h-24 flex flex-col justify-center">
             {appState.userText && <p className="text-indigo-400 font-bold text-[10px] uppercase tracking-widest animate-pulse mb-3 px-6 leading-tight">"{appState.userText}"</p>}
-            <h2 className="text-xl font-black px-6 leading-tight transition-all">{appState.aiText || "Klaar voor de start?"}</h2>
+            <h2 className="text-xl font-black px-6 leading-tight">{appState.aiText || "Klaar voor de start?"}</h2>
           </div>
           
           <button 
@@ -235,7 +247,7 @@ const App: React.FC = () => {
             ) : (
               <>
                 <i className="fa-solid fa-microphone text-5xl mb-3"></i>
-                <span className="text-[10px] font-black uppercase tracking-widest opacity-40">Tik & Praat</span>
+                <span className="text-[10px] font-black uppercase tracking-widest opacity-40">Spraak Start</span>
               </>
             )}
           </button>
@@ -246,17 +258,17 @@ const App: React.FC = () => {
              <h3 className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em]">Rittenlijst</h3>
              <span className="text-[10px] font-black text-indigo-400 tracking-widest">{appState.tasks.length} stops</span>
           </div>
-          <div className="overflow-y-auto max-h-[32vh] space-y-3 pb-8 custom-scrollbar pr-1">
+          <div className="overflow-y-auto max-h-[30vh] space-y-3 pb-8 custom-scrollbar pr-1">
             {appState.tasks.length === 0 ? (
               <div className="py-14 text-center border-2 border-dashed border-white/5 rounded-[2.5rem] opacity-20">
-                 <p className="text-[10px] font-black uppercase tracking-widest">Geen ritten geladen</p>
+                 <p className="text-[10px] font-black uppercase tracking-widest">Wacht op cloud sync</p>
               </div>
             ) : (
               appState.tasks.map(t => (
-                <div key={t.id} className="p-5 bg-white/5 border border-white/5 rounded-[1.5rem] flex justify-between items-center group active:bg-indigo-600 transition-all">
+                <div key={t.id} className="p-5 bg-white/5 border border-white/5 rounded-[1.5rem] flex justify-between items-center group active:bg-indigo-600/50 transition-all">
                   <div className="flex-1 pr-4">
                     <p className="font-bold text-base tracking-tight leading-tight">{t.omschrijving}</p>
-                    <p className="text-[11px] text-white/30 font-bold mt-1 tracking-wider">{t.telefoonnummer || 'GEEN TELEFOON'}</p>
+                    <p className="text-[11px] text-white/30 font-bold mt-1 tracking-wider">{t.telefoonnummer || 'GEEN NUMMER'}</p>
                   </div>
                   <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center group-active:bg-white/20">
                     <i className="fa-solid fa-phone text-xs opacity-30 group-active:opacity-100"></i>
@@ -268,7 +280,7 @@ const App: React.FC = () => {
         </div>
       </main>
 
-      <footer className="py-6 text-center opacity-10 safe-bottom">
+      <footer className="py-6 text-center opacity-10 pb-[env(safe-area-inset-bottom,1.5rem)]">
         <p className="text-[9px] font-black uppercase tracking-[0.5em]">DriveAssist AI Core v3.1</p>
       </footer>
 
