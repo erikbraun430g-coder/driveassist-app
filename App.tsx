@@ -133,7 +133,7 @@ const App: React.FC = () => {
   };
 
   const startCoPilot = async () => {
-    setAppState(prev => ({ ...prev, status: 'connecting', aiText: 'Contacten verifiëren...' }));
+    setAppState(prev => ({ ...prev, status: 'connecting', aiText: 'Systeem laden...' }));
     
     const callListContext = tasksRef.current.length > 0 
       ? tasksRef.current.map((t, idx) => `CONTACT ${idx + 1}:
@@ -166,7 +166,7 @@ const App: React.FC = () => {
         model: 'gemini-2.5-flash-native-audio-preview-12-2025',
         callbacks: {
           onopen: () => {
-            setAppState(prev => ({ ...prev, status: 'active', isActive: true, aiText: 'Gereed voor instructies.' }));
+            setAppState(prev => ({ ...prev, status: 'active', isActive: true, aiText: 'Ik luister...' }));
             const source = inputCtx.createMediaStreamSource(stream);
             const scriptProcessor = inputCtx.createScriptProcessor(4096, 1, 1);
             scriptProcessor.onaudioprocess = (e) => {
@@ -189,7 +189,7 @@ const App: React.FC = () => {
                   setTimeout(() => { 
                     window.location.assign(`tel:${num}`); 
                     setCallingTask(null); 
-                  }, 2500);
+                  }, 3000);
                 }
                 sessionPromise.then(s => s.sendToolResponse({ functionResponses: { id: fc.id, name: fc.name, response: { result: "ok" } } }));
               }
@@ -248,14 +248,19 @@ const App: React.FC = () => {
         </div>
       )}
 
+      {/* GIGANTISCH BEL-SCHERM */}
       {callingTask && (
-        <div className="fixed inset-0 z-[60] bg-indigo-900 flex flex-col items-center justify-center p-10 text-center animate-in fade-in duration-300">
-           <div className="w-24 h-24 bg-white/10 rounded-full flex items-center justify-center mb-8 animate-pulse">
-             <i className="fa-solid fa-phone text-4xl"></i>
+        <div className="fixed inset-0 z-[60] bg-indigo-600 flex flex-col items-center justify-center p-8 text-center animate-in fade-in zoom-in duration-300">
+           <div className="w-32 h-32 bg-white/20 rounded-full flex items-center justify-center mb-12 animate-pulse">
+             <i className="fa-solid fa-phone-volume text-6xl"></i>
            </div>
-           <h2 className="text-3xl font-black mb-2">{callingTask.name}</h2>
-           <p className="text-xl opacity-50 mb-10">{callingTask.phoneNumber}</p>
-           <p className="text-xs font-bold uppercase tracking-[0.3em] text-indigo-400">Microfoon wordt vrijgegeven...</p>
+           <div className="space-y-4">
+              <h2 className="text-5xl font-black tracking-tighter leading-none">{callingTask.name}</h2>
+              <p className="text-6xl font-mono font-black text-indigo-200 tracking-tighter">{callingTask.phoneNumber}</p>
+           </div>
+           <div className="mt-20 px-8 py-4 bg-white/10 rounded-full border border-white/20">
+              <p className="text-xs font-black uppercase tracking-[0.4em] text-white">Telefoonsysteem wordt geopend...</p>
+           </div>
         </div>
       )}
 
@@ -265,8 +270,8 @@ const App: React.FC = () => {
             <i className="fa-solid fa-headset text-white"></i>
           </div>
           <div>
-            <h1 className="text-[11px] font-black uppercase tracking-[0.3em]">CallAssist <span className="text-indigo-400">4.2</span></h1>
-            <span className="text-[9px] text-white/30 font-bold uppercase tracking-widest">{appState.tasks.length} items</span>
+            <h1 className="text-[11px] font-black uppercase tracking-[0.3em]">CallAssist <span className="text-indigo-400">4.5</span></h1>
+            <span className="text-[9px] text-white/30 font-bold uppercase tracking-widest">{appState.tasks.length} contacten</span>
           </div>
         </div>
         <button onClick={() => setShowSyncModal(true)} className="w-11 h-11 rounded-2xl bg-white/5 flex items-center justify-center active:scale-90 transition-transform">
@@ -275,64 +280,64 @@ const App: React.FC = () => {
       </header>
 
       <main className="flex-1 flex flex-col p-6 overflow-hidden">
-        <div className="flex-1 flex flex-col items-center justify-center text-center space-y-12">
-          <div className="h-24 flex flex-col justify-center">
-            {appState.userText && <p className="text-indigo-400 font-bold text-[10px] uppercase tracking-widest animate-pulse mb-3">"{appState.userText}"</p>}
-            <h2 className="text-xl font-black px-6">{appState.aiText || "Klaar voor start?"}</h2>
+        <div className="flex-1 flex flex-col items-center justify-center text-center">
+          <div className="h-28 flex flex-col justify-center mb-6">
+            {appState.userText && <p className="text-indigo-400 font-bold text-xs uppercase tracking-widest animate-pulse mb-3">"{appState.userText}"</p>}
+            <h2 className="text-2xl font-black px-4 leading-tight">{appState.aiText || "Klaar voor start?"}</h2>
           </div>
           
-          <div className="relative group">
+          <div className="relative w-full flex flex-col items-center">
+            {/* GIGANTISCHE START/STOP KNOP */}
             <button 
               onClick={appState.isActive ? () => stopCoPilot('manual') : startCoPilot}
-              className={`w-44 h-44 rounded-full flex flex-col items-center justify-center transition-all duration-500 relative ${appState.isActive ? 'bg-slate-900 border-[8px] border-indigo-500 shadow-[0_0_80px_rgba(99,102,241,0.4)]' : 'bg-indigo-600 border-[8px] border-white/5 shadow-2xl active:scale-95'}`}
+              className={`w-52 h-52 rounded-full flex flex-col items-center justify-center transition-all duration-500 relative ${appState.isActive ? 'bg-slate-900 border-[10px] border-indigo-500 shadow-[0_0_100px_rgba(99,102,241,0.5)] scale-105' : 'bg-indigo-600 border-[10px] border-white/5 shadow-2xl active:scale-90'}`}
             >
               {appState.isActive ? (
-                <div className="flex gap-2 items-end h-12">
-                  {[1,3,5,2,4,2,1].map((v, i) => (<div key={i} className="w-2 bg-indigo-400 rounded-full animate-wave" style={{ height: `${v * 8}px`, animationDelay: `${i*0.1}s` }}></div>))}
+                <div className="flex gap-3 items-end h-16">
+                  {[1,3,5,2,4,2,1].map((v, i) => (<div key={i} className="w-2.5 bg-indigo-400 rounded-full animate-wave" style={{ height: `${v * 10}px`, animationDelay: `${i*0.1}s` }}></div>))}
                 </div>
               ) : (
                 <>
-                  <i className="fa-solid fa-microphone text-5xl mb-3"></i>
-                  <span className="text-[10px] font-black uppercase tracking-widest opacity-40">Start Assist</span>
+                  <i className="fa-solid fa-microphone text-6xl mb-4"></i>
+                  <span className="text-[11px] font-black uppercase tracking-[0.2em] opacity-60">Tik om te praten</span>
                 </>
               )}
             </button>
             
+            {/* GIGANTISCHE SIRI VRIJGAVE BALK */}
             {appState.isActive && (
               <button 
                 onClick={() => stopCoPilot('siri')}
-                className="absolute -bottom-16 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 animate-in slide-in-from-top-4 duration-500"
+                className="mt-16 w-full max-w-sm h-20 bg-red-600 rounded-3xl flex items-center justify-center gap-4 shadow-[0_10px_40px_rgba(220,38,38,0.4)] active:scale-95 transition-all animate-in slide-in-from-bottom-8 duration-500"
               >
-                <div className="w-12 h-12 rounded-full bg-red-500/20 border border-red-500/30 flex items-center justify-center shadow-lg active:scale-90 transition-transform">
-                  <i className="fa-solid fa-microphone-slash text-red-500 text-sm"></i>
-                </div>
-                <span className="text-[9px] font-black text-red-500 uppercase tracking-widest whitespace-nowrap">Siri Vrijgeven</span>
+                <i className="fa-solid fa-microphone-slash text-2xl"></i>
+                <span className="text-lg font-black uppercase tracking-widest text-white">Siri Vrijgeven</span>
               </button>
             )}
           </div>
         </div>
         
-        <div className="mt-14 space-y-5">
+        <div className={`mt-10 space-y-4 transition-opacity duration-500 ${appState.isActive ? 'opacity-20 pointer-events-none' : 'opacity-100'}`}>
           <div className="flex justify-between items-end px-3">
-             <h3 className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em]">Contactlijst</h3>
+             <h3 className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em]">Contacten</h3>
              {!appState.isActive && (
-               <span className="text-[10px] font-black text-emerald-500 tracking-widest flex items-center gap-2 animate-in fade-in slide-in-from-right-2">
-                 <i className="fa-solid fa-circle-check text-[7px]"></i> Microfoon vrij voor Siri
+               <span className="text-[10px] font-black text-emerald-500 tracking-widest flex items-center gap-2">
+                 <i className="fa-solid fa-check-circle text-[8px]"></i> Siri Beschikbaar
                </span>
              )}
           </div>
-          <div className="overflow-y-auto max-h-[25vh] space-y-3 pb-8 custom-scrollbar">
+          <div className="overflow-y-auto max-h-[22vh] space-y-3 pb-8 custom-scrollbar">
             {appState.tasks.map(t => (
-              <div key={t.id} className="p-5 bg-white/5 border border-white/5 rounded-[1.5rem] flex justify-between items-center group active:bg-indigo-600/30 transition-all">
-                <div className="flex-1 pr-4">
-                  <p className="font-bold text-base tracking-tight">{t.name}</p>
-                  <p className="text-[11px] text-white/40 mt-0.5">{t.organization}</p>
-                  <p className="text-[10px] text-indigo-400 font-bold mt-1 uppercase tracking-wider italic">{t.subject}</p>
+              <div key={t.id} className="p-6 bg-white/5 border border-white/5 rounded-[1.75rem] flex justify-between items-center active:bg-indigo-600 transition-colors">
+                <div className="flex-1 pr-6">
+                  <p className="font-bold text-lg tracking-tight leading-none">{t.name}</p>
+                  <p className="text-xs text-white/40 mt-1">{t.organization}</p>
+                  <p className="text-[10px] text-indigo-400 font-black mt-2 uppercase tracking-widest italic">{t.subject}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-[11px] text-white/30 font-bold mb-2 font-mono">{t.phoneNumber}</p>
-                  <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center ml-auto">
-                    <i className="fa-solid fa-phone text-[10px] text-indigo-400"></i>
+                  <p className="text-sm text-white/30 font-mono font-bold mb-3">{t.phoneNumber}</p>
+                  <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center ml-auto">
+                    <i className="fa-solid fa-phone text-xs text-indigo-400"></i>
                   </div>
                 </div>
               </div>
@@ -342,9 +347,10 @@ const App: React.FC = () => {
       </main>
 
       <style>{`
-        @keyframes wave { 0%, 100% { transform: scaleY(0.5); } 50% { transform: scaleY(1.3); } }
-        .animate-wave { animation: wave 1.2s infinite ease-in-out; }
+        @keyframes wave { 0%, 100% { transform: scaleY(0.5); } 50% { transform: scaleY(1.4); } }
+        .animate-wave { animation: wave 1s infinite ease-in-out; }
         .custom-scrollbar::-webkit-scrollbar { width: 0; }
+        body { -webkit-tap-highlight-color: transparent; }
       `}</style>
     </div>
   );
