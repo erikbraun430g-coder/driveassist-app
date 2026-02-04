@@ -102,11 +102,10 @@ const App: React.FC = () => {
     }
   };
 
-  const stopCoPilot = () => {
+  const stopCoPilot = (reason: string = 'idle') => {
     sessionRef.current?.close();
     sessionRef.current = null;
 
-    // CRUCIAAL: Stop alle tracks van de MediaStream om de microfoon fysiek vrij te geven voor Siri
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
       streamRef.current = null;
@@ -122,7 +121,15 @@ const App: React.FC = () => {
     audioSourcesRef.current.clear();
     nextStartTimeRef.current = 0;
 
-    setAppState(prev => ({ ...prev, isActive: false, status: 'idle', userText: '', aiText: '' }));
+    const feedbackText = reason === 'siri' ? 'Microfoon vrij voor Siri.' : '';
+
+    setAppState(prev => ({ 
+      ...prev, 
+      isActive: false, 
+      status: 'idle', 
+      userText: '', 
+      aiText: feedbackText 
+    }));
   };
 
   const startCoPilot = async () => {
@@ -177,8 +184,7 @@ const App: React.FC = () => {
                   const task = tasksRef.current.find(t => t.phoneNumber === num);
                   setCallingTask(task || { id: 'ext', name: 'Onbekend', organization: '', subject: 'Bellen...', phoneNumber: num, status: 'bezig' });
                   
-                  // Stop de assistent sessie VOORDAT we bellen om mic vrij te geven
-                  stopCoPilot();
+                  stopCoPilot('calling');
                   
                   setTimeout(() => { 
                     window.location.assign(`tel:${num}`); 
@@ -243,7 +249,7 @@ const App: React.FC = () => {
       )}
 
       {callingTask && (
-        <div className="fixed inset-0 z-[60] bg-indigo-900 flex flex-col items-center justify-center p-10 text-center">
+        <div className="fixed inset-0 z-[60] bg-indigo-900 flex flex-col items-center justify-center p-10 text-center animate-in fade-in duration-300">
            <div className="w-24 h-24 bg-white/10 rounded-full flex items-center justify-center mb-8 animate-pulse">
              <i className="fa-solid fa-phone text-4xl"></i>
            </div>
@@ -277,7 +283,7 @@ const App: React.FC = () => {
           
           <div className="relative group">
             <button 
-              onClick={appState.isActive ? stopCoPilot : startCoPilot}
+              onClick={appState.isActive ? () => stopCoPilot('manual') : startCoPilot}
               className={`w-44 h-44 rounded-full flex flex-col items-center justify-center transition-all duration-500 relative ${appState.isActive ? 'bg-slate-900 border-[8px] border-indigo-500 shadow-[0_0_80px_rgba(99,102,241,0.4)]' : 'bg-indigo-600 border-[8px] border-white/5 shadow-2xl active:scale-95'}`}
             >
               {appState.isActive ? (
@@ -292,10 +298,9 @@ const App: React.FC = () => {
               )}
             </button>
             
-            {/* Specifieke Siri Release knop */}
             {appState.isActive && (
               <button 
-                onClick={stopCoPilot}
+                onClick={() => stopCoPilot('siri')}
                 className="absolute -bottom-16 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 animate-in slide-in-from-top-4 duration-500"
               >
                 <div className="w-12 h-12 rounded-full bg-red-500/20 border border-red-500/30 flex items-center justify-center shadow-lg active:scale-90 transition-transform">
@@ -310,9 +315,11 @@ const App: React.FC = () => {
         <div className="mt-14 space-y-5">
           <div className="flex justify-between items-end px-3">
              <h3 className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em]">Contactlijst</h3>
-             {!appState.isActive && <span className="text-[10px] font-black text-emerald-500 tracking-widest flex items-center gap-2">
-               <i className="fa-solid fa-circle-check text-[7px]"></i> Microfoon vrij voor Siri
-             </span>}
+             {!appState.isActive && (
+               <span className="text-[10px] font-black text-emerald-500 tracking-widest flex items-center gap-2 animate-in fade-in slide-in-from-right-2">
+                 <i className="fa-solid fa-circle-check text-[7px]"></i> Microfoon vrij voor Siri
+               </span>
+             )}
           </div>
           <div className="overflow-y-auto max-h-[25vh] space-y-3 pb-8 custom-scrollbar">
             {appState.tasks.map(t => (
