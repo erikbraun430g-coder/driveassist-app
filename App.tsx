@@ -189,7 +189,7 @@ const App: React.FC = () => {
                   setTimeout(() => { 
                     window.location.assign(`tel:${num}`); 
                     setCallingTask(null); 
-                  }, 3000);
+                  }, 4000);
                 }
                 sessionPromise.then(s => s.sendToolResponse({ functionResponses: { id: fc.id, name: fc.name, response: { result: "ok" } } }));
               }
@@ -232,7 +232,7 @@ const App: React.FC = () => {
     <div className="fixed inset-0 bg-slate-950 flex flex-col text-white font-sans overflow-hidden">
       
       {showSyncModal && (
-        <div className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-6 backdrop-blur-xl">
+        <div className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-6 backdrop-blur-xl">
           <div className="w-full max-w-md bg-slate-900 p-8 rounded-[2.5rem] border border-white/10 shadow-2xl">
             <h2 className="text-xl font-black mb-4">Lijst synchroniseren</h2>
             <input 
@@ -248,109 +248,116 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* GIGANTISCH BEL-SCHERM */}
+      {/* GIGANTISCH BEL-SCHERM (Emergency-style) */}
       {callingTask && (
-        <div className="fixed inset-0 z-[60] bg-indigo-600 flex flex-col items-center justify-center p-8 text-center animate-in fade-in zoom-in duration-300">
-           <div className="w-32 h-32 bg-white/20 rounded-full flex items-center justify-center mb-12 animate-pulse">
-             <i className="fa-solid fa-phone-volume text-6xl"></i>
+        <div className="fixed inset-0 z-[90] bg-indigo-950 flex flex-col items-center justify-center p-12 text-center animate-in fade-in duration-500">
+           <div className="absolute top-0 left-0 w-full h-2 bg-white/20 overflow-hidden">
+              <div className="h-full bg-white animate-[progress_4s_linear]"></div>
            </div>
-           <div className="space-y-4">
-              <h2 className="text-5xl font-black tracking-tighter leading-none">{callingTask.name}</h2>
-              <p className="text-6xl font-mono font-black text-indigo-200 tracking-tighter">{callingTask.phoneNumber}</p>
+           
+           <div className="w-40 h-40 bg-white/5 rounded-full flex items-center justify-center mb-16 ring-8 ring-white/10 animate-pulse">
+             <i className="fa-solid fa-phone-flip text-7xl text-white"></i>
            </div>
-           <div className="mt-20 px-8 py-4 bg-white/10 rounded-full border border-white/20">
-              <p className="text-xs font-black uppercase tracking-[0.4em] text-white">Telefoonsysteem wordt geopend...</p>
+           
+           <div className="space-y-6">
+              <h2 className="text-6xl font-black tracking-tighter leading-tight text-white mb-2">{callingTask.name}</h2>
+              <p className="text-7xl font-mono font-black text-indigo-400 tracking-tighter">{callingTask.phoneNumber}</p>
+           </div>
+           
+           <div className="mt-24">
+              <p className="text-sm font-black uppercase tracking-[0.5em] text-white/40 animate-pulse">Microfoon wordt vrijgegeven...</p>
            </div>
         </div>
       )}
 
       <header className="px-8 pt-[env(safe-area-inset-top,3.5rem)] pb-6 flex justify-between items-center bg-slate-950/80 backdrop-blur-lg border-b border-white/5">
         <div className="flex items-center gap-4">
-          <div className="w-11 h-11 bg-indigo-600 rounded-2xl flex items-center justify-center">
-            <i className="fa-solid fa-headset text-white"></i>
+          <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-900/40">
+            <i className="fa-solid fa-headset text-white text-lg"></i>
           </div>
           <div>
-            <h1 className="text-[11px] font-black uppercase tracking-[0.3em]">CallAssist <span className="text-indigo-400">4.5</span></h1>
-            <span className="text-[9px] text-white/30 font-bold uppercase tracking-widest">{appState.tasks.length} contacten</span>
+            <h1 className="text-[12px] font-black uppercase tracking-[0.3em]">CallAssist <span className="text-indigo-400">5.0</span></h1>
+            <span className="text-[10px] text-white/30 font-bold uppercase tracking-widest">Drive Mode</span>
           </div>
         </div>
-        <button onClick={() => setShowSyncModal(true)} className="w-11 h-11 rounded-2xl bg-white/5 flex items-center justify-center active:scale-90 transition-transform">
-          <i className={`fa-solid fa-sync text-base ${isSyncing ? 'animate-spin text-indigo-400' : 'text-white/40'}`}></i>
+        <button onClick={() => setShowSyncModal(true)} className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center active:scale-90 transition-transform">
+          <i className={`fa-solid fa-sync text-lg ${isSyncing ? 'animate-spin text-indigo-400' : 'text-white/40'}`}></i>
         </button>
       </header>
 
-      <main className="flex-1 flex flex-col p-6 overflow-hidden">
+      <main className="flex-1 flex flex-col p-6 overflow-hidden relative">
         <div className="flex-1 flex flex-col items-center justify-center text-center">
-          <div className="h-28 flex flex-col justify-center mb-6">
-            {appState.userText && <p className="text-indigo-400 font-bold text-xs uppercase tracking-widest animate-pulse mb-3">"{appState.userText}"</p>}
-            <h2 className="text-2xl font-black px-4 leading-tight">{appState.aiText || "Klaar voor start?"}</h2>
+          <div className="h-32 flex flex-col justify-center mb-8">
+            {appState.userText && <p className="text-indigo-400 font-black text-sm uppercase tracking-[0.2em] animate-pulse mb-4">"{appState.userText}"</p>}
+            <h2 className="text-3xl font-black px-4 leading-tight">{appState.aiText || "Klaar voor start?"}</h2>
           </div>
           
           <div className="relative w-full flex flex-col items-center">
-            {/* GIGANTISCHE START/STOP KNOP */}
+            {/* GIGANTISCHE CENTRALE KNOP */}
             <button 
               onClick={appState.isActive ? () => stopCoPilot('manual') : startCoPilot}
-              className={`w-52 h-52 rounded-full flex flex-col items-center justify-center transition-all duration-500 relative ${appState.isActive ? 'bg-slate-900 border-[10px] border-indigo-500 shadow-[0_0_100px_rgba(99,102,241,0.5)] scale-105' : 'bg-indigo-600 border-[10px] border-white/5 shadow-2xl active:scale-90'}`}
+              className={`w-64 h-64 rounded-full flex flex-col items-center justify-center transition-all duration-500 relative ${appState.isActive ? 'bg-slate-900 border-[12px] border-indigo-500 shadow-[0_0_120px_rgba(99,102,241,0.6)] scale-110' : 'bg-indigo-600 border-[12px] border-white/5 shadow-2xl active:scale-90'}`}
             >
               {appState.isActive ? (
-                <div className="flex gap-3 items-end h-16">
-                  {[1,3,5,2,4,2,1].map((v, i) => (<div key={i} className="w-2.5 bg-indigo-400 rounded-full animate-wave" style={{ height: `${v * 10}px`, animationDelay: `${i*0.1}s` }}></div>))}
+                <div className="flex gap-4 items-end h-20">
+                  {[1,3,5,2,4,2,1].map((v, i) => (<div key={i} className="w-3 bg-indigo-400 rounded-full animate-wave" style={{ height: `${v * 12}px`, animationDelay: `${i*0.1}s` }}></div>))}
                 </div>
               ) : (
                 <>
-                  <i className="fa-solid fa-microphone text-6xl mb-4"></i>
-                  <span className="text-[11px] font-black uppercase tracking-[0.2em] opacity-60">Tik om te praten</span>
+                  <i className="fa-solid fa-microphone text-7xl mb-6"></i>
+                  <span className="text-[12px] font-black uppercase tracking-[0.3em] text-white/60">Tik om te praten</span>
                 </>
               )}
             </button>
-            
-            {/* GIGANTISCHE SIRI VRIJGAVE BALK */}
-            {appState.isActive && (
-              <button 
-                onClick={() => stopCoPilot('siri')}
-                className="mt-16 w-full max-w-sm h-20 bg-red-600 rounded-3xl flex items-center justify-center gap-4 shadow-[0_10px_40px_rgba(220,38,38,0.4)] active:scale-95 transition-all animate-in slide-in-from-bottom-8 duration-500"
-              >
-                <i className="fa-solid fa-microphone-slash text-2xl"></i>
-                <span className="text-lg font-black uppercase tracking-widest text-white">Siri Vrijgeven</span>
-              </button>
-            )}
           </div>
         </div>
         
-        <div className={`mt-10 space-y-4 transition-opacity duration-500 ${appState.isActive ? 'opacity-20 pointer-events-none' : 'opacity-100'}`}>
-          <div className="flex justify-between items-end px-3">
-             <h3 className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em]">Contacten</h3>
+        {/* LIJST SECTIE (Wordt bijna onzichtbaar bij actieve assistent om focus te houden) */}
+        <div className={`mt-10 space-y-4 transition-all duration-500 ${appState.isActive ? 'opacity-5 blur-sm scale-95 pointer-events-none' : 'opacity-100 scale-100'}`}>
+          <div className="flex justify-between items-end px-4">
+             <h3 className="text-[11px] font-black text-white/30 uppercase tracking-[0.4em]">Contacten</h3>
              {!appState.isActive && (
-               <span className="text-[10px] font-black text-emerald-500 tracking-widest flex items-center gap-2">
-                 <i className="fa-solid fa-check-circle text-[8px]"></i> Siri Beschikbaar
+               <span className="text-[11px] font-black text-emerald-500 tracking-widest flex items-center gap-2">
+                 <i className="fa-solid fa-check-circle text-[10px]"></i> Siri Klaar
                </span>
              )}
           </div>
-          <div className="overflow-y-auto max-h-[22vh] space-y-3 pb-8 custom-scrollbar">
+          <div className="overflow-y-auto max-h-[25vh] space-y-3 pb-24 custom-scrollbar">
             {appState.tasks.map(t => (
-              <div key={t.id} className="p-6 bg-white/5 border border-white/5 rounded-[1.75rem] flex justify-between items-center active:bg-indigo-600 transition-colors">
-                <div className="flex-1 pr-6">
-                  <p className="font-bold text-lg tracking-tight leading-none">{t.name}</p>
-                  <p className="text-xs text-white/40 mt-1">{t.organization}</p>
-                  <p className="text-[10px] text-indigo-400 font-black mt-2 uppercase tracking-widest italic">{t.subject}</p>
+              <div key={t.id} className="p-7 bg-white/5 border border-white/5 rounded-[2rem] flex justify-between items-center active:bg-indigo-600 transition-colors">
+                <div className="flex-1 pr-8">
+                  <p className="font-black text-xl tracking-tighter leading-none">{t.name}</p>
+                  <p className="text-sm text-white/40 mt-1.5 font-bold uppercase tracking-wide">{t.organization}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm text-white/30 font-mono font-bold mb-3">{t.phoneNumber}</p>
-                  <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center ml-auto">
-                    <i className="fa-solid fa-phone text-xs text-indigo-400"></i>
+                  <p className="text-base text-white/30 font-mono font-black mb-3">{t.phoneNumber}</p>
+                  <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center ml-auto">
+                    <i className="fa-solid fa-phone text-sm text-indigo-400"></i>
                   </div>
                 </div>
               </div>
             ))}
           </div>
         </div>
+
+        {/* GIGANTISCHE SIRI VRIJGAVE BALK - ONDERAAN SCHERM */}
+        {appState.isActive && (
+          <button 
+            onClick={() => stopCoPilot('siri')}
+            className="fixed bottom-0 left-0 w-full h-32 bg-red-600 flex items-center justify-center gap-6 shadow-[0_-10px_60px_rgba(220,38,38,0.5)] active:bg-red-700 transition-all animate-in slide-in-from-bottom-full duration-500 z-50"
+          >
+            <i className="fa-solid fa-microphone-slash text-4xl"></i>
+            <span className="text-2xl font-black uppercase tracking-[0.2em] text-white">Siri Nu Vrijgeven</span>
+          </button>
+        )}
       </main>
 
       <style>{`
-        @keyframes wave { 0%, 100% { transform: scaleY(0.5); } 50% { transform: scaleY(1.4); } }
-        .animate-wave { animation: wave 1s infinite ease-in-out; }
+        @keyframes wave { 0%, 100% { transform: scaleY(0.5); } 50% { transform: scaleY(1.5); } }
+        @keyframes progress { from { width: 0%; } to { width: 100%; } }
+        .animate-wave { animation: wave 0.8s infinite ease-in-out; }
         .custom-scrollbar::-webkit-scrollbar { width: 0; }
-        body { -webkit-tap-highlight-color: transparent; }
+        body { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
       `}</style>
     </div>
   );
